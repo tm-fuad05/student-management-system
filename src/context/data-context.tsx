@@ -50,7 +50,11 @@ type DataContextValue = {
   results: Result[];
   payments: Payment[];
   activities: ActivityItem[];
-  log: (label: string, type?: ActivityItem["type"]) => void;
+  log: (
+    label: string,
+    type?: ActivityItem["type"],
+    meta?: { student_id?: string },
+  ) => void;
   setDepartments: React.Dispatch<React.SetStateAction<Department[]>>;
   setStudents: React.Dispatch<React.SetStateAction<Student[]>>;
   setTeachers: React.Dispatch<React.SetStateAction<Teacher[]>>;
@@ -78,15 +82,23 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [payments, setPayments] = useState(initialPayments);
   const [activities, setActivities] = useState(initialActivities);
 
-  const log = useCallback((label: string, type: ActivityItem["type"] = "info") => {
-    const item: ActivityItem = {
-      id: uid(),
-      label,
-      time: new Date().toISOString(),
-      type,
-    };
-    setActivities((prev) => [item, ...prev].slice(0, 50));
-  }, []);
+  const log = useCallback(
+    (
+      label: string,
+      type: ActivityItem["type"] = "info",
+      meta?: { student_id?: string },
+    ) => {
+      const item: ActivityItem = {
+        id: uid(),
+        label,
+        time: new Date().toISOString(),
+        type,
+        ...(meta?.student_id ? { student_id: meta.student_id } : {}),
+      };
+      setActivities((prev) => [item, ...prev].slice(0, 50));
+    },
+    [],
+  );
 
   const value = useMemo(
     () => ({

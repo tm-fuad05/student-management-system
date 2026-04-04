@@ -8,7 +8,7 @@ import { Modal } from "@/components/ui/Modal";
 import { TableShell, Td, Th } from "@/components/ui/TableShell";
 import { useData } from "@/context/data-context";
 import { nextNumericId } from "@/lib/ids";
-import type { Attendance, AttendanceStatus } from "@/lib/types";
+import type { Attendance, AttendanceStatus, Enrollment } from "@/lib/types";
 
 export default function AttendancePage() {
   const { attendance, enrollments, students, sections, courses, setAttendance, log } =
@@ -44,8 +44,12 @@ export default function AttendancePage() {
 
   function remove(id: string) {
     if (!confirm("Delete this attendance row?")) return;
+    const row = attendance.find((a) => a.attendance_id === id);
+    const sid = row
+      ? enrollments.find((e) => e.enrollment_id === row.enrollment_id)?.student_id
+      : undefined;
     setAttendance((prev) => prev.filter((a) => a.attendance_id !== id));
-    log(`Attendance ${id} deleted`, "delete");
+    log(`Attendance ${id} deleted`, "delete", sid ? { student_id: sid } : undefined);
   }
 
   return (
@@ -159,9 +163,13 @@ function AttendanceModal({
   onClose: () => void;
   initial: Attendance | null;
   attendance: Attendance[];
-  enrollments: { enrollment_id: string }[];
+  enrollments: Enrollment[];
   setAttendance: React.Dispatch<React.SetStateAction<Attendance[]>>;
-  log: (l: string, t?: "create" | "update" | "delete" | "info") => void;
+  log: (
+    l: string,
+    t?: "create" | "update" | "delete" | "info",
+    meta?: { student_id?: string },
+  ) => void;
 }) {
   const [form, setForm] = useState<Attendance>({
     attendance_id: "",
@@ -184,14 +192,16 @@ function AttendanceModal({
 
   function save(e: React.FormEvent) {
     e.preventDefault();
+    const sid = enrollments.find((e) => e.enrollment_id === form.enrollment_id)
+      ?.student_id;
     if (initial) {
       setAttendance((prev) =>
         prev.map((a) => (a.attendance_id === form.attendance_id ? form : a)),
       );
-      log(`Attendance ${form.attendance_id} updated`, "update");
+      log(`Attendance ${form.attendance_id} updated`, "update", sid ? { student_id: sid } : undefined);
     } else {
       setAttendance((prev) => [...prev, form]);
-      log(`Attendance ${form.attendance_id} recorded`, "create");
+      log(`Attendance ${form.attendance_id} recorded`, "create", sid ? { student_id: sid } : undefined);
     }
     onClose();
   }

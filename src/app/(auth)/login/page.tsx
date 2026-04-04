@@ -111,8 +111,6 @@ export default function LoginPage() {
             Create an account
           </Link>
         </p>
-
-       
       </motion.div>
     </div>
   );

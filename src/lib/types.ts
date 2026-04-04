@@ -103,6 +103,8 @@ export interface ActivityItem {
   label: string;
   time: string;
   type: "create" | "update" | "delete" | "info";
+  /** When set, shown in student profile history */
+  student_id?: string;
 }
 
 export type ModuleKey =

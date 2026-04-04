@@ -15,6 +15,7 @@ const ALL: ModuleKey[] = [
   "reports",
 ];
 
+/** Same module visibility as admin; write restrictions use helpers below. */
 const ACADEMIC: ModuleKey[] = [...ALL];
 
 const TEACHER: ModuleKey[] = [
@@ -36,6 +37,21 @@ const ROLE_MODULES: Record<UserRole, ModuleKey[]> = {
 
 export function canAccessModule(role: UserRole, key: ModuleKey): boolean {
   return ROLE_MODULES[role].includes(key);
+}
+
+/** Only admins may add, edit, or delete payment records (sensitive finance). */
+export function canWritePayments(role: UserRole): boolean {
+  return role === "admin";
+}
+
+/** Only admins may remove department records. */
+export function canDeleteDepartment(role: UserRole): boolean {
+  return role === "admin";
+}
+
+/** Only admins may remove teacher records. */
+export function canDeleteTeacher(role: UserRole): boolean {
+  return role === "admin";
 }
 
 export function getRoleLabel(role: UserRole): string {

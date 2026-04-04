@@ -2,8 +2,14 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
-import { HiOutlineMagnifyingGlass, HiOutlinePencilSquare, HiOutlineTrash } from "react-icons/hi2";
+import {
+  HiOutlineIdentification,
+  HiOutlineMagnifyingGlass,
+  HiOutlinePencilSquare,
+  HiOutlineTrash,
+} from "react-icons/hi2";
 import { RoleGuard } from "@/components/auth/RoleGuard";
+import { StudentProfileModal } from "@/components/students/StudentProfileModal";
 import { Modal } from "@/components/ui/Modal";
 import { TableShell, Td, Th } from "@/components/ui/TableShell";
 import { useData } from "@/context/data-context";
@@ -15,6 +21,7 @@ export default function StudentsPage() {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Student | null>(null);
+  const [profile, setProfile] = useState<Student | null>(null);
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -34,7 +41,7 @@ export default function StudentsPage() {
   function remove(id: string) {
     if (!confirm("Delete this student?")) return;
     setStudents((prev) => prev.filter((x) => x.student_id !== id));
-    log(`Student ${id} deleted`, "delete");
+    log(`Student ${id} deleted`, "delete", { student_id: id });
   }
 
   return (
@@ -91,6 +98,14 @@ export default function StudentsPage() {
                   <Td className="text-right">
                     <button
                       type="button"
+                      className="mr-2 inline-flex rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-violet-300"
+                      title="Profile & history"
+                      onClick={() => setProfile(x)}
+                    >
+                      <HiOutlineIdentification className="h-5 w-5" />
+                    </button>
+                    <button
+                      type="button"
                       className="mr-2 inline-flex rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-sky-300"
                       onClick={() => {
                         setEditing(x);
@@ -123,6 +138,12 @@ export default function StudentsPage() {
         setStudents={setStudents}
         log={log}
       />
+
+      <StudentProfileModal
+        open={!!profile}
+        student={profile}
+        onClose={() => setProfile(null)}
+      />
     </RoleGuard>
   );
 }
@@ -142,7 +163,11 @@ function StudentModal({
   students: Student[];
   departments: { dept_id: string; dept_name: string }[];
   setStudents: React.Dispatch<React.SetStateAction<Student[]>>;
-  log: (l: string, t?: "create" | "update" | "delete" | "info") => void;
+  log: (
+    l: string,
+    t?: "create" | "update" | "delete" | "info",
+    meta?: { student_id?: string },
+  ) => void;
 }) {
   const [form, setForm] = useState<Student>({
     student_id: "",
@@ -179,10 +204,14 @@ function StudentModal({
       setStudents((prev) =>
         prev.map((s) => (s.student_id === form.student_id ? form : s)),
       );
-      log(`Student ${form.student_id} updated`, "update");
+      log(`Student ${form.student_id} updated`, "update", {
+        student_id: form.student_id,
+      });
     } else {
       setStudents((prev) => [...prev, form]);
-      log(`Student ${form.student_id} registered`, "create");
+      log(`Student ${form.student_id} registered`, "create", {
+        student_id: form.student_id,
+      });
     }
     onClose();
   }

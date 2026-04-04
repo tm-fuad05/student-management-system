@@ -294,6 +294,7 @@ export const initialActivities: ActivityItem[] = [
     label: "Enrollment E7001 marked active",
     time: new Date().toISOString(),
     type: "create",
+    student_id: "S1001",
   },
 ];
 

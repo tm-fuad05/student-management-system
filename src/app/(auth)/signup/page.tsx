@@ -51,7 +51,9 @@ export default function SignupPage() {
       signup(username, password, role, email.trim() || undefined);
       router.push("/dashboard");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not create account.");
+      setError(
+        err instanceof Error ? err.message : "Could not create account.",
+      );
     }
   }
 
@@ -68,9 +70,12 @@ export default function SignupPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-400/90">
             Nexus Campus
           </p>
-          <h1 className="mt-2 text-2xl font-bold text-gradient">Create account</h1>
+          <h1 className="mt-2 text-2xl font-bold text-gradient">
+            Create account
+          </h1>
           <p className="mt-2 text-sm text-slate-500">
-            Register for mock access. Credentials are stored in this browser only.
+            Register for mock access. Credentials are stored in this browser
+            only.
           </p>
         </div>
 
@@ -197,8 +202,6 @@ export default function SignupPage() {
             Sign in
           </Link>
         </p>
-
-       
       </motion.div>
     </div>
   );

@@ -53,7 +53,10 @@ export default function DashboardPage() {
       animate="show"
       className="space-y-8"
     >
-      <motion.div variants={item} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <motion.div
+        variants={item}
+        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+      >
         <Stat
           label="Students"
           value={students.length}
@@ -82,7 +85,8 @@ export default function DashboardPage() {
                 ${paymentStats.total.toLocaleString()}
               </p>
               <p className="mt-1 text-xs text-slate-500">
-                {paymentStats.pendingCount} pending · {paymentStats.count} records
+                {paymentStats.pendingCount} pending · {paymentStats.count}{" "}
+                records
               </p>
             </div>
             <span className="rounded-xl bg-amber-500/15 p-2 text-amber-300 ring-1 ring-amber-500/25">
@@ -95,7 +99,9 @@ export default function DashboardPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         <motion.div variants={item} className="lg:col-span-2">
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-slate-200">Quick navigation</h3>
+            <h3 className="text-sm font-semibold text-slate-200">
+              Quick navigation
+            </h3>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             {navItems.map((n) => (

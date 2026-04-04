@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { HiOutlineMagnifyingGlass, HiOutlinePencilSquare, HiOutlineTrash } from "react-icons/hi2";
 import { RoleGuard } from "@/components/auth/RoleGuard";
+import { useAuth } from "@/context/auth-context";
+import { canWritePayments } from "@/lib/permissions";
 import { Modal } from "@/components/ui/Modal";
 import { TableShell, Td, Th } from "@/components/ui/TableShell";
 import { useData } from "@/context/data-context";
@@ -11,7 +13,9 @@ import { nextNumericId } from "@/lib/ids";
 import type { Payment, PaymentRecordStatus, PaymentType } from "@/lib/types";
 
 export default function PaymentsPage() {
+  const { user } = useAuth();
   const { payments, students, setPayments, log } = useData();
+  const canWrite = user ? canWritePayments(user.role) : false;
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Payment | null>(null);
@@ -29,14 +33,22 @@ export default function PaymentsPage() {
   }, [payments, students, q]);
 
   function remove(id: string) {
+    if (!canWrite) return;
     if (!confirm("Delete this payment record?")) return;
-    setPayments((prev) => prev.filter((p) => p.payment_id !== id));
-    log(`Payment ${id} deleted`, "delete");
+    const p = payments.find((x) => x.payment_id === id);
+    setPayments((prev) => prev.filter((x) => x.payment_id !== id));
+    log(`Payment ${id} deleted`, "delete", p ? { student_id: p.student_id } : undefined);
   }
 
   return (
     <RoleGuard moduleKey="payments">
       <div className="space-y-4">
+        {!canWrite && (
+          <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/95">
+            <strong className="font-semibold">View only.</strong> Academic staff can review
+            payment records; only admins may add, edit, or delete payment entries.
+          </p>
+        )}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative max-w-md flex-1">
             <HiOutlineMagnifyingGlass className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
@@ -47,16 +59,18 @@ export default function PaymentsPage() {
               className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-3 text-sm outline-none ring-sky-500/30 focus:ring-2"
             />
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              setEditing(null);
-              setOpen(true);
-            }}
-            className="rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-semibold text-slate-950"
-          >
-            Add payment
-          </button>
+          {canWrite && (
+            <button
+              type="button"
+              onClick={() => {
+                setEditing(null);
+                setOpen(true);
+              }}
+              className="rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-semibold text-slate-950"
+            >
+              Add payment
+            </button>
+          )}
         </div>
 
         <motion.div
@@ -101,23 +115,28 @@ export default function PaymentsPage() {
                     </span>
                   </Td>
                   <Td className="text-right">
-                    <button
-                      type="button"
-                      className="mr-2 inline-flex rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-sky-300"
-                      onClick={() => {
-                        setEditing(p);
-                        setOpen(true);
-                      }}
-                    >
-                      <HiOutlinePencilSquare className="h-5 w-5" />
-                    </button>
-                    <button
-                      type="button"
-                      className="inline-flex rounded-lg p-2 text-slate-400 hover:bg-rose-500/10 hover:text-rose-300"
-                      onClick={() => remove(p.payment_id)}
-                    >
-                      <HiOutlineTrash className="h-5 w-5" />
-                    </button>
+                    {canWrite && (
+                      <>
+                        <button
+                          type="button"
+                          className="mr-2 inline-flex rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-sky-300"
+                          onClick={() => {
+                            setEditing(p);
+                            setOpen(true);
+                          }}
+                        >
+                          <HiOutlinePencilSquare className="h-5 w-5" />
+                        </button>
+                        <button
+                          type="button"
+                          className="inline-flex rounded-lg p-2 text-slate-400 hover:bg-rose-500/10 hover:text-rose-300"
+                          onClick={() => remove(p.payment_id)}
+                        >
+                          <HiOutlineTrash className="h-5 w-5" />
+                        </button>
+                      </>
+                    )}
+                    {!canWrite && <span className="text-xs text-slate-600">—</span>}
                   </Td>
                 </tr>
               ))}
@@ -126,15 +145,17 @@ export default function PaymentsPage() {
         </motion.div>
       </div>
 
-      <PaymentModal
-        open={open}
-        onClose={() => setOpen(false)}
-        initial={editing}
-        payments={payments}
-        students={students}
-        setPayments={setPayments}
-        log={log}
-      />
+      {canWrite && (
+        <PaymentModal
+          open={open}
+          onClose={() => setOpen(false)}
+          initial={editing}
+          payments={payments}
+          students={students}
+          setPayments={setPayments}
+          log={log}
+        />
+      )}
     </RoleGuard>
   );
 }
@@ -154,7 +175,11 @@ function PaymentModal({
   payments: Payment[];
   students: { student_id: string; student_name: string }[];
   setPayments: React.Dispatch<React.SetStateAction<Payment[]>>;
-  log: (l: string, t?: "create" | "update" | "delete" | "info") => void;
+  log: (
+    l: string,
+    t?: "create" | "update" | "delete" | "info",
+    meta?: { student_id?: string },
+  ) => void;
 }) {
   const [form, setForm] = useState<Payment>({
     payment_id: "",
@@ -185,10 +210,14 @@ function PaymentModal({
       setPayments((prev) =>
         prev.map((p) => (p.payment_id === form.payment_id ? form : p)),
       );
-      log(`Payment ${form.payment_id} updated`, "update");
+      log(`Payment ${form.payment_id} updated`, "update", {
+        student_id: form.student_id,
+      });
     } else {
       setPayments((prev) => [...prev, form]);
-      log(`Payment ${form.payment_id} recorded`, "create");
+      log(`Payment ${form.payment_id} recorded`, "create", {
+        student_id: form.student_id,
+      });
     }
     onClose();
   }

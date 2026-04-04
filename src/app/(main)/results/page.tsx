@@ -9,7 +9,7 @@ import { TableShell, Td, Th } from "@/components/ui/TableShell";
 import { useData } from "@/context/data-context";
 import { gradeFromMarks } from "@/lib/grade";
 import { nextNumericId } from "@/lib/ids";
-import type { Result } from "@/lib/types";
+import type { Enrollment, Result } from "@/lib/types";
 
 export default function ResultsPage() {
   const { results, enrollments, students, sections, courses, setResults, log } =
@@ -44,8 +44,12 @@ export default function ResultsPage() {
 
   function remove(id: string) {
     if (!confirm("Delete this result?")) return;
-    setResults((prev) => prev.filter((r) => r.result_id !== id));
-    log(`Result ${id} deleted`, "delete");
+    const r = results.find((x) => x.result_id === id);
+    const sid = r
+      ? enrollments.find((e) => e.enrollment_id === r.enrollment_id)?.student_id
+      : undefined;
+    setResults((prev) => prev.filter((x) => x.result_id !== id));
+    log(`Result ${id} deleted`, "delete", sid ? { student_id: sid } : undefined);
   }
 
   return (
@@ -153,9 +157,13 @@ function ResultModal({
   onClose: () => void;
   initial: Result | null;
   results: Result[];
-  enrollments: { enrollment_id: string }[];
+  enrollments: Enrollment[];
   setResults: React.Dispatch<React.SetStateAction<Result[]>>;
-  log: (l: string, t?: "create" | "update" | "delete" | "info") => void;
+  log: (
+    l: string,
+    t?: "create" | "update" | "delete" | "info",
+    meta?: { student_id?: string },
+  ) => void;
 }) {
   const [form, setForm] = useState<Result>({
     result_id: "",
@@ -190,14 +198,16 @@ function ResultModal({
       alert("A result for this enrollment already exists (1:1).");
       return;
     }
+    const sid = enrollments.find((e) => e.enrollment_id === row.enrollment_id)
+      ?.student_id;
     if (initial) {
       setResults((prev) =>
         prev.map((r) => (r.result_id === row.result_id ? row : r)),
       );
-      log(`Result ${row.result_id} updated`, "update");
+      log(`Result ${row.result_id} updated`, "update", sid ? { student_id: sid } : undefined);
     } else {
       setResults((prev) => [...prev, row]);
-      log(`Result ${row.result_id} published`, "create");
+      log(`Result ${row.result_id} published`, "create", sid ? { student_id: sid } : undefined);
     }
     onClose();
   }

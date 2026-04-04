@@ -23,7 +23,7 @@ export function Sidebar() {
           {user?.username} · {user?.role.replace("_", " ")}
         </p>
       </div>
-      <nav className="scrollbar-thin flex flex-1 flex-col gap-0.5 overflow-y-auto pr-1">
+      <nav className="scrollbar-thin flex flex-1 flex-col gap-0.5 overflow-y-auto p-px pr-1">
         {APP_NAV.filter((item) =>
           user ? canAccessModule(user.role, item.key) : false,
         ).map((item) => {

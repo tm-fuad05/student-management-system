@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { HiOutlineMagnifyingGlass, HiOutlinePencilSquare, HiOutlineTrash } from "react-icons/hi2";
 import { RoleGuard } from "@/components/auth/RoleGuard";
+import { useAuth } from "@/context/auth-context";
+import { canDeleteDepartment } from "@/lib/permissions";
 import { Modal } from "@/components/ui/Modal";
 import { TableShell, Td, Th } from "@/components/ui/TableShell";
 import { useData } from "@/context/data-context";
@@ -11,7 +13,9 @@ import { nextNumericId } from "@/lib/ids";
 import type { Department } from "@/lib/types";
 
 export default function DepartmentsPage() {
+  const { user } = useAuth();
   const { departments, setDepartments, log } = useData();
+  const allowDelete = user ? canDeleteDepartment(user.role) : false;
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Department | null>(null);
@@ -79,14 +83,16 @@ export default function DepartmentsPage() {
                     >
                       <HiOutlinePencilSquare className="h-5 w-5" />
                     </button>
-                    <button
-                      type="button"
-                      className="inline-flex rounded-lg p-2 text-slate-400 hover:bg-rose-500/10 hover:text-rose-300"
-                      onClick={() => remove(d.dept_id)}
-                      aria-label="Delete"
-                    >
-                      <HiOutlineTrash className="h-5 w-5" />
-                    </button>
+                    {allowDelete && (
+                      <button
+                        type="button"
+                        className="inline-flex rounded-lg p-2 text-slate-400 hover:bg-rose-500/10 hover:text-rose-300"
+                        onClick={() => remove(d.dept_id)}
+                        aria-label="Delete"
+                      >
+                        <HiOutlineTrash className="h-5 w-5" />
+                      </button>
+                    )}
                   </Td>
                 </tr>
               ))}

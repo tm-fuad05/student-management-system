@@ -43,8 +43,11 @@ export default function EnrollmentsPage() {
 
   function remove(id: string) {
     if (!confirm("Remove this enrollment?")) return;
+    const row = enrollments.find((e) => e.enrollment_id === id);
     setEnrollments((prev) => prev.filter((e) => e.enrollment_id !== id));
-    log(`Enrollment ${id} removed`, "delete");
+    log(`Enrollment ${id} removed`, "delete", {
+      student_id: row?.student_id,
+    });
   }
 
   return (
@@ -168,7 +171,11 @@ function EnrollmentModal({
   students: { student_id: string; student_name: string }[];
   sections: { section_id: string; section_name: string }[];
   setEnrollments: React.Dispatch<React.SetStateAction<Enrollment[]>>;
-  log: (l: string, t?: "create" | "update" | "delete" | "info") => void;
+  log: (
+    l: string,
+    t?: "create" | "update" | "delete" | "info",
+    meta?: { student_id?: string },
+  ) => void;
 }) {
   const [form, setForm] = useState<Enrollment>({
     enrollment_id: "",
@@ -197,10 +204,14 @@ function EnrollmentModal({
       setEnrollments((prev) =>
         prev.map((x) => (x.enrollment_id === form.enrollment_id ? form : x)),
       );
-      log(`Enrollment ${form.enrollment_id} updated`, "update");
+      log(`Enrollment ${form.enrollment_id} updated`, "update", {
+        student_id: form.student_id,
+      });
     } else {
       setEnrollments((prev) => [...prev, form]);
-      log(`Enrollment ${form.enrollment_id} created`, "create");
+      log(`Enrollment ${form.enrollment_id} created`, "create", {
+        student_id: form.student_id,
+      });
     }
     onClose();
   }
