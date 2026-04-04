@@ -198,11 +198,7 @@ export default function SignupPage() {
           </Link>
         </p>
 
-        <p className="mt-4 text-center text-xs">
-          <Link href="/" className="text-sky-400/90 hover:underline">
-            Home
-          </Link>
-        </p>
+       
       </motion.div>
     </div>
   );

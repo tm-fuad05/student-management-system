@@ -112,15 +112,7 @@ export default function LoginPage() {
           </Link>
         </p>
 
-        <p className="mt-4 text-center text-xs text-slate-600">
-          ERD-aligned entities: Department → Student / Teacher / Course → Section →
-          Enrollment → Attendance & Result; Payment per student.
-        </p>
-        <p className="mt-2 text-center text-xs">
-          <Link href="/" className="text-sky-400/90 hover:underline">
-            Home
-          </Link>
-        </p>
+       
       </motion.div>
     </div>
   );
